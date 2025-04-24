@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import random
 import pyreadr
 from datetime import datetime, timedelta
 
@@ -42,7 +41,9 @@ with tab1:
     # Generate random game
     st.subheader("Generate Random Game")
     if st.button("Generates a random NFL game from the entire sample"):
-        st.session_state.nfl_random_id = random.choice(st.session_state.nfl_watch_index.game_id.unique())
+        game_ids = st.session_state.nfl_watch_index.game_id.unique()
+        shuffled = np.random.permutation(game_ids)
+        st.session_state.nfl_random_id = shuffled[0]
         st.session_state.nfl_random_game = st.session_state.nfl_watch_index[st.session_state.nfl_watch_index.game_id == st.session_state.nfl_random_id][['season', 'playoff', 'week', 'home_team', 'away_team', 'PREPA', 'PRWAR', 'PRWacky', 'PRPenalties', 'WatchIndex']]
         
         for col in ['PREPA', 'PRWAR', 'PRWacky', 'PRPenalties', 'WatchIndex']:
@@ -94,7 +95,7 @@ with tab2:
     st.write('This is a recreation of my watch index for the NFL. It takes a selection of filters and then returns a table of the games over the past 5 seasons and their corresponding watch index. The score is created by a weighted average of a number of features about the game that create metrics about scoring, excitement, and closeness. It is weighted pretty strongly towards closer games with lots of lead changes and a game coming down to the wire.')
 
     # Read in the watch_index table 
-    st.session_state.watch_index = pd.read_csv('checkpoints/watch_index_all_seasons.csv')
+    st.session_state.watch_index = pd.read_csv('checkpoints/watch_index_all_seasons.csv').drop_duplicates(subset = ['game_id'])
 
     today = datetime.now()
     st.session_state.formatted_date = today.strftime("%Y-%m-%d")
@@ -114,7 +115,9 @@ with tab2:
     # Generate random game
     st.subheader("Generate Random Game")
     if st.button("Generates a random NBA game from the entire sample"):
-        st.session_state.random_id = random.choice(st.session_state.watch_index.game_id.unique())
+        game_ids = st.session_state.watch_index.game_id.unique()
+        shuffled = np.random.permutation(game_ids)
+        st.session_state.random_id = shuffled[0]
         st.session_state.random_game = st.session_state.watch_index[st.session_state.watch_index.game_id == st.session_state.random_id][['season', 'game_date', 'home_team', 'away_team', 'Scoring', 'Competitiveness', 'Highlights', 'WatchIndex']]
         for col in ['Scoring', 'Competitiveness', 'Highlights', 'WatchIndex']:
             st.session_state.random_game[col] = round(st.session_state.random_game[col] *100, 2)
